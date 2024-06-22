@@ -23,12 +23,24 @@
         <input type="submit" value="Join Queue" />
       </form>
     </div>
-    <div id="scene-in-queue" class="scene">In queue</div>
+    <div id="scene-in-queue" class="scene">
+      <section>
+        <h2>Waiting for Opponent...</h2>
+        <div class="queue-preloader">
+          <div class="paddle paddle-l"></div>
+          <div class="ball"></div>
+          <div class="paddle paddle-r"></div>
+        </div>
+      </section>
+    </div>
     <div id="scene-game" class="scene">
-      <header>
-        <h1>P2Pong</h1>
-        <h3 id="connection-status"></h3>
-      </header>
+      <section>
+        <header>
+          <h1>P2Pong</h1>
+          <h3 id="connection-status"></h3>
+        </header>
+        <canvas id="game-board"></canvas>
+      </section>
     </div>
   </body>
 </html>
