@@ -26,7 +26,6 @@ export const PADDLE_MASKS = Object.entries(PaddleBitFlags).reduce(
  */
 export class PlayerState {
   y = (constants.height - constants.paddleHeight) / 2
-  socd = 0
 
   /**
    *
@@ -59,21 +58,21 @@ export default class BasePlayer {
 
   /**
    *
-   * @param {PaddleInput} inputFlag
-   * @param {boolean} pressed
+   * @param {PaddleInput} input
    */
-  setInput(inputFlag, pressed) {
-    const oldState = this.buttons
-    let newState = oldState
-    if (pressed) newState |= PADDLE_MASKS[inputFlag]
-    else newState &= ~PADDLE_MASKS[inputFlag]
+  isPressed(input) {
+    return this.buttons & PADDLE_MASKS[input]
+  }
 
-    if (newState !== oldState) {
-      console.log('changed', newState)
-      // const buf = new Uint8Array()
-      // this.channel.send(new ArrayBuffer(2))
+  /**
+   *
+   * @param {number} buttons
+   */
+  setButtonState(buttons) {
+    if (buttons !== this.buttons) {
+      // console.log('changed', buttons)
     }
-    this.buttons = newState
+    this.buttons = buttons
   }
 
   /**
@@ -81,16 +80,15 @@ export default class BasePlayer {
    */
   tick(tick) {
     let direction = 0
-    if (this.buttons & PADDLE_MASKS.Up && this.buttons & PADDLE_MASKS.Down) {
-      direction = this.state.socd
-    } else if (this.buttons & PADDLE_MASKS.Up) {
-      this.state.socd = 1
+    if (this.isPressed('Up') && this.isPressed('Down')) {
+      // SOCD: Neutral
+      direction = 0
+      console.warn('[BasePlayer] Unexpecte SOCD encountered')
+    } else if (this.isPressed('Up')) {
       direction = -1
-    } else if (this.buttons & PADDLE_MASKS.Down) {
-      this.state.socd = -1
+    } else if (this.isPressed('Down')) {
       direction = 1
     } else {
-      this.state.socd = 0
       direction = 0
     }
     this.state.y += direction * constants.paddleSpeed

@@ -2,7 +2,7 @@ import '/socket.io/socket.io.js'
 
 import { ICE_SERVERS } from './constants.js'
 import GameInstance from './game/game.js'
-import LocalPlayer from './game/players/local.js'
+import { KeyboardLocalPlayer } from './game/players/local.js'
 import RemotePlayer from './game/players/remote.js'
 import DataChannelTransport from './game/transport/datachannel.js'
 import Scene from './scene.js'
@@ -116,7 +116,7 @@ async function negotiatePeerConnection(oppUsername, oppSessionId, role) {
     console.log('p2p connection opened')
     const transport = new DataChannelTransport(dataChannel)
 
-    const localPlayer = new LocalPlayer()
+    const localPlayer = new KeyboardLocalPlayer()
     const remotePlayer = new RemotePlayer()
     let player1 = role === 'caller' ? localPlayer : remotePlayer
     let player2 = role === 'caller' ? remotePlayer : localPlayer
