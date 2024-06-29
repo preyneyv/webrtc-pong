@@ -2,12 +2,15 @@
 
 export default class Player {
   /**
-   *
    * @param {GameInstance} game
    * @param {number} playerIdx
    */
   bindToGame(game, playerIdx) {
     this.game = game
     this.playerIdx = playerIdx
+  }
+
+  updateState() {
+    console.log('update state')
   }
 }
