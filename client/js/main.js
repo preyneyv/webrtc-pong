@@ -1,10 +1,11 @@
 import '/socket.io/socket.io.js'
 
-import Scene from './scene.js'
 import { ICE_SERVERS } from './constants.js'
 import GameInstance from './game/game.js'
 import LocalPlayer from './game/players/local.js'
 import RemotePlayer from './game/players/remote.js'
+import DataChannelTransport from './game/transport/datachannel.js'
+import Scene from './scene.js'
 
 let socket
 const sessionId = crypto.randomUUID()
@@ -108,15 +109,18 @@ async function negotiatePeerConnection(oppUsername, oppSessionId, role) {
       connectionState[0].toUpperCase() + connectionState.slice(1)
   })
 
-  // dataChannel.addEventListener('message', ({ data }) => {
-  //   console.log('dc', data)
-  // })
+  dataChannel.addEventListener('message', ({ data }) => {
+    console.log('dc', data)
+  })
   dataChannel.addEventListener('open', () => {
     console.log('p2p connection opened')
-    const localPlayer = new LocalPlayer(dataChannel)
-    const remotePlayer = new RemotePlayer(dataChannel)
+    const transport = new DataChannelTransport(dataChannel)
+
+    const localPlayer = new LocalPlayer()
+    const remotePlayer = new RemotePlayer()
     let player1 = role === 'caller' ? localPlayer : remotePlayer
     let player2 = role === 'caller' ? remotePlayer : localPlayer
-    new GameInstance(player1, player2, scenes.game.$('#game-board'))
+
+    new GameInstance(transport, player1, player2, scenes.game.$('#game-board'))
   })
 }

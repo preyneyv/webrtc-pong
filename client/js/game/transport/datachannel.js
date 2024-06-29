@@ -1,8 +1,7 @@
-import BasePlayer from './base.js'
+import BaseTransport from './base.js'
 
-export default class RemotePlayer extends BasePlayer {
+export default class DataChannelTransport extends BaseTransport {
   /**
-   *
    * @param {RTCDataChannel} channel
    */
   constructor(channel) {

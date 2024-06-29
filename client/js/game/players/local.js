@@ -1,7 +1,13 @@
-import Player from './player.js'
+/** @typedef {import('./base.js').PaddleInput} PaddleInput */
+import BasePlayer from './base.js'
 
-export default class LocalPlayer extends Player {
-  state = 0
+/** @type {{ [key: string]: PaddleInput }} */
+export const PADDLE_INPUT_LOOKUP = {
+  ArrowUp: 'Up',
+  ArrowDown: 'Down',
+}
+
+export default class LocalPlayer extends BasePlayer {
   /**
    * @param {RTCDataChannel} channel
    */
@@ -10,39 +16,17 @@ export default class LocalPlayer extends Player {
     this.channel = channel
 
     window.addEventListener('keydown', (e) => {
-      const flag = this.bitFlag(e.key)
-      if (flag === -1) return // ignored key
+      const flag = PADDLE_INPUT_LOOKUP[e.key]
+      if (flag === undefined) return // ignored key
       e.preventDefault()
-      this.setFlag(flag, true)
+      this.setInput(flag, true)
     })
 
     window.addEventListener('keyup', (e) => {
-      const flag = this.bitFlag(e.key)
-      if (flag === -1) return // ignored key
+      const flag = PADDLE_INPUT_LOOKUP[e.key]
+      if (flag === undefined) return // ignored key
       e.preventDefault()
-      this.setFlag(flag, false)
+      this.setInput(flag, false)
     })
-  }
-
-  bitFlag(key) {
-    switch (key) {
-      case 'ArrowDown':
-        return 0
-      case 'ArrowUp':
-        return 1
-    }
-    return -1
-  }
-
-  setFlag(flag, pressed) {
-    const oldState = this.state
-    let newState = oldState
-    if (pressed) newState |= 1 << flag
-    else newState &= ~(1 << flag)
-    if (newState !== oldState) {
-      const buf = new Uint8()
-      this.channel.send(new ArrayBuffer(2))
-    }
-    this.state = newState
   }
 }
