@@ -7,7 +7,7 @@ export default class RemotePlayer extends BasePlayer {
    * @param {PublishButtonsPacket} packet
    */
   handlePublishButtons(packet) {
-    // console.log('handlePublishButtons', packet)
+    // console.log('handlePublishButtons', this.game.tick, packet)
     this.setButtonState(packet.buttons)
   }
 

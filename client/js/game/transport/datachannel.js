@@ -27,7 +27,7 @@ export default class DataChannelTransport extends BaseTransport {
 
   /** @type {BaseTransport['send']} */
   send(packet) {
-    // setTimeout(() => this.channel.send(packet), 150)
-    this.channel.send(packet)
+    setTimeout(() => this.channel.send(packet), 150)
+    // this.channel.send(packet)
   }
 }

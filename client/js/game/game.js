@@ -35,6 +35,15 @@ export default class GameInstance {
 
     this.startedAt = performance.now()
     requestAnimationFrame(this.render)
+
+    this.isRunning = true
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.isRunning = false
+        console.log('FREEZE')
+        console.log(this)
+      }
+    })
   }
 
   freeze() {
@@ -76,12 +85,19 @@ export default class GameInstance {
    * @param {DOMHighResTimeStamp} pts
    */
   render(pts) {
+    if (!this.isRunning) return
     const currentTick = this.tick
     if (this.packetQueue.length) {
       // sort buffer in packet order
       this.packetQueue.sort((a, b) => a.idx - b.idx)
       const earliestTick = this.packetQueue[0].tick
       const delta = currentTick - earliestTick
+      // console.log(
+      //   'processing packet rollback',
+      //   earliestTick,
+      //   currentTick,
+      //   packetQueue
+      // )
 
       // console.log(earliestTick, currentTick)
       if (earliestTick < currentTick) {
@@ -120,11 +136,14 @@ export default class GameInstance {
     }
     const elapsed = pts - this.startedAt
     const endTick = Math.floor((elapsed * constants.tickRate) / 1000)
+    // if (this.tick === endTick && havePackets) console.warn('skip')
+    let queueProcessPointer = 0
     while (this.tick < endTick) {
       const isTimeTravelling = this.tick < currentTick
       const stateBufferOffset = currentTick - this.tick
 
       if (isTimeTravelling) {
+        // console.log('rollback', this.tick, currentTick, endTick)
         // restore inputs to what they were in the past
         this.restoreInputs(this.rollbackStateBuffer.retrieve(stateBufferOffset))
       }
@@ -132,10 +151,21 @@ export default class GameInstance {
       // this.packetQueue.length &&
       // console.log('tick master', this.tick, this.packetQueue)
       // process incoming packets
-      for (let i = 0; i < this.packetQueue.length; i++) {
-        const packet = this.packetQueue[i]
-        if (packet.tick < this.tick) continue
-        else if (packet.tick > this.tick) break
+      // if (packetQueue.length) {
+      //   console.log('tick packet', this.tick, this.packetQueue)
+      // }
+      // if (havePackets)
+      // console.log('pktcompare', havePackets, packetQueue.length, packetQueue)
+      // if (packetQueue.length) console.log('packets', packetQueue)
+      for (
+        ;
+        queueProcessPointer < this.packetQueue.length;
+        queueProcessPointer++
+      ) {
+        const packet = this.packetQueue[queueProcessPointer]
+        if (packet.tick > this.tick) break
+        // if (packet.tick < this.tick) continue
+        // else if (packet.tick > this.tick) break
 
         if (packet instanceof PublishButtonsPacket) {
           /** @type {RemotePlayer} */ this.players[
@@ -155,7 +185,15 @@ export default class GameInstance {
         this.rollbackStateBuffer.push(frozenState)
       }
     }
-    this.packetQueue = []
+    if (this.packetQueue.length)
+      console.log(
+        'ptr',
+        queueProcessPointer,
+        this.packetQueue.length,
+        this.packetQueue
+      )
+    // this.packetQueue.push(...this.packetQueue.slice(queueProcessPointer))
+    this.packetQueue = this.packetQueue.slice(queueProcessPointer)
 
     this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height)
     this.players.map((player) => player.render(this.ctx))
