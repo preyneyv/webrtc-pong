@@ -2,9 +2,18 @@
 /** @typedef {import('./transport/base.js').default} BaseTransport */
 
 import constants from './constants.js'
+import { BasePacket, PublishButtonsPacket } from './packets.js'
+import RemotePlayer from './players/remote.js'
+import { RingBuffer } from './rollback.js'
 
 export default class GameInstance {
   tick = 0
+
+  /** @type {BasePacket[]} */
+  packetQueue = []
+
+  rollbackStateBuffer = new RingBuffer(constants.rollbackBufferSize)
+
   /**
    * @param {BaseTransport} transport
    * @param {[BasePlayer, BasePlayer]} players
@@ -28,16 +37,125 @@ export default class GameInstance {
     requestAnimationFrame(this.render)
   }
 
+  freeze() {
+    return [this.tick, this.players.map((player) => player.freeze())]
+  }
+
+  /**
+   * Rewind to the given state.
+   * @param {*} state target state
+   */
+  restoreState(state) {
+    const [tick, players] = state
+    this.tick = tick
+    this.players.forEach((player, i) => player.restoreState(players[i]))
+  }
+
+  /**
+   * Only restore inputs from the given state.
+   */
+  restoreInputs(state) {
+    const players = state[1]
+    this.players.forEach((player, i) => player.restoreInputs(players[i]))
+  }
+
+  doTick() {
+    this.players.map((player) => player.tick(this.tick))
+    this.tick++
+  }
+
+  /**
+   * Add the packet to the rollback queue for processing at the next tick
+   * @param {BasePacket} packet
+   */
+  processPacket(packet) {
+    this.packetQueue.push(packet)
+  }
+
   /**
    * @param {DOMHighResTimeStamp} pts
    */
   render(pts) {
-    const elapsed = pts - this.startedAt
-    const targetTick = Math.floor((elapsed * constants.tickRate) / 1000)
-    while (this.tick < targetTick) {
-      this.players.map((player) => player.tick(this.tick))
-      this.tick++
+    const currentTick = this.tick
+    if (this.packetQueue.length) {
+      // sort buffer in packet order
+      this.packetQueue.sort((a, b) => a.idx - b.idx)
+      const earliestTick = this.packetQueue[0].tick
+      const delta = currentTick - earliestTick
+
+      // console.log(earliestTick, currentTick)
+      if (earliestTick < currentTick) {
+        // initiate a rollback
+
+        // rewind to right before target tick
+        const targetState = this.rollbackStateBuffer.retrieve(delta + 1)
+        // console.log(targetTick, currentTick, delta, targetState)
+        if (!targetState) {
+          console.error('No rollback state for', earliestTick)
+          return
+        }
+        this.restoreState(targetState, true)
+      }
+      // while (this.tick < currentTick) {
+      //   // console.log('rollback', this.tick, adjustedDelta)
+      //   // console.log('ticks', this.tick, targetTick, currentTick, adjustedDelta)
+      //   const stateBufferOffset = currentTick - this.tick
+      //   this.restoreInputs(this.rollbackStateBuffer.retrieve(stateBufferOffset))
+
+      //   // apply rollback packets as necessary
+      //   for (let i = 0; i < this.packetQueue.length; i++) {
+      //     const packet = this.packetQueue[i]
+      //     if (packet.tick < this.tick) continue
+      //     else if (packet.tick > this.tick) break
+
+      //     if (packet instanceof PublishButtonsPacket) {
+      //       /** @type {RemotePlayer} */ this.players[
+      //         packet.playerIdx
+      //       ].handlePublishButtons(packet)
+      //     }
+      //   }
+      //   this.doTick()
+      //   this.rollbackStateBuffer.set(stateBufferOffset, this.freeze())
+      // }
     }
+    const elapsed = pts - this.startedAt
+    const endTick = Math.floor((elapsed * constants.tickRate) / 1000)
+    while (this.tick < endTick) {
+      const isTimeTravelling = this.tick < currentTick
+      const stateBufferOffset = currentTick - this.tick
+
+      if (isTimeTravelling) {
+        // restore inputs to what they were in the past
+        this.restoreInputs(this.rollbackStateBuffer.retrieve(stateBufferOffset))
+      }
+
+      // this.packetQueue.length &&
+      // console.log('tick master', this.tick, this.packetQueue)
+      // process incoming packets
+      for (let i = 0; i < this.packetQueue.length; i++) {
+        const packet = this.packetQueue[i]
+        if (packet.tick < this.tick) continue
+        else if (packet.tick > this.tick) break
+
+        if (packet instanceof PublishButtonsPacket) {
+          /** @type {RemotePlayer} */ this.players[
+            packet.playerIdx
+          ].handlePublishButtons(packet)
+        }
+      }
+
+      this.doTick()
+
+      const frozenState = this.freeze()
+      if (isTimeTravelling) {
+        // overwrite previous state
+        this.rollbackStateBuffer.set(stateBufferOffset, frozenState)
+      } else {
+        // save new state
+        this.rollbackStateBuffer.push(frozenState)
+      }
+    }
+    this.packetQueue = []
 
     this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height)
     this.players.map((player) => player.render(this.ctx))

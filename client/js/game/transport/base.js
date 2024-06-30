@@ -1,9 +1,4 @@
-import {
-  BasePacket as ArrayBuffer,
-  BasePacket,
-  PacketType,
-  PublishButtonsPacket,
-} from '../packets.js'
+import { BasePacket, PacketType, PublishButtonsPacket } from '../packets.js'
 
 /** @typedef {import('../game').default} GameInstance */
 export default class BaseTransport {
@@ -35,15 +30,19 @@ export default class BaseTransport {
   }
 
   /**
-   * Handle the reception of a new packet
+   * Handle the reception of a new packet and route it to the appropriate
+   * consumer.
    * @protected
    * @param {ArrayBuffer} buffer
    */
   onRecv(buffer) {
     const packet = BasePacket.unmarshal(buffer)
-    if (packet.type === PacketType.PublishButtons) {
-      this.game.players[packet.playerIdx].handlePublishButtons(packet)
-    }
+    console.log('>> recv', packet)
+    this.game.processPacket(packet)
+
+    // if (packet instanceof PublishButtonsPacket) {
+    //   this.game.players[packet.playerIdx].handlePublishButtons(packet)
+    // }
   }
 
   /**

@@ -3,6 +3,7 @@ const constants = {
   height: 720,
 
   tickRate: 128,
+  rollbackBufferSize: 128 * 5, // 5 seconds of rollbackability
 
   paddleHeight: 120,
   paddleWidth: 16,

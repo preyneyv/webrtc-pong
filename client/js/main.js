@@ -102,6 +102,9 @@ async function negotiatePeerConnection(oppUsername, oppSessionId, role) {
     negotiated: true,
     id: 1,
   })
+  // dataChannel.addEventListener('bufferedamountlow', () =>
+  //   console.log('low buf')
+  // )
 
   pc.addEventListener('connectionstatechange', () => {
     const { connectionState } = pc

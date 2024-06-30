@@ -26,14 +26,7 @@ export const PADDLE_MASKS = Object.entries(PaddleBitFlags).reduce(
  */
 export class PlayerState {
   y = (constants.height - constants.paddleHeight) / 2
-
-  /**
-   *
-   * @param {Partial<PlayerState>} state
-   */
-  constructor(state) {
-    Object.assign(this, state)
-  }
+  buttons = 0
 }
 
 /**
@@ -41,8 +34,7 @@ export class PlayerState {
  * physics
  */
 export default class BasePlayer {
-  state = new PlayerState({})
-  buttons = 0
+  state = new PlayerState()
 
   /**
    * @param {GameInstance} game
@@ -56,12 +48,30 @@ export default class BasePlayer {
     this.paddleX = playerIdx === 0 ? 0 : constants.width - constants.paddleWidth
   }
 
+  freeze() {
+    return structuredClone(this.state)
+  }
+
+  /**
+   * @param {PlayerState} state
+   */
+  restoreState(state) {
+    Object.assign(this.state, state)
+  }
+
+  /**
+   * @param {PlayerState} state
+   */
+  restoreInputs(state) {
+    this.state.buttons = state.buttons
+  }
+
   /**
    *
    * @param {PaddleInput} input
    */
   isPressed(input) {
-    return this.buttons & PADDLE_MASKS[input]
+    return this.state.buttons & PADDLE_MASKS[input]
   }
 
   /**
@@ -76,10 +86,10 @@ export default class BasePlayer {
    * @param {number} buttons
    */
   setButtonState(buttons) {
-    if (buttons !== this.buttons) {
+    if (buttons !== this.state.buttons) {
       this.onButtonStateChange(buttons)
     }
-    this.buttons = buttons
+    this.state.buttons = buttons
   }
 
   /**
@@ -99,6 +109,9 @@ export default class BasePlayer {
       direction = 0
     }
     this.state.y += direction * constants.paddleSpeed
+    if (this.state.y < 0) this.state.y = 0
+    if (this.state.y + constants.paddleHeight > constants.height)
+      this.state.y = constants.height - constants.paddleHeight
   }
 
   /**

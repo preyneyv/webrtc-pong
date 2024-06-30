@@ -30,6 +30,7 @@ export default class LocalPlayer extends BasePlayer {
 
   /** @type {BasePlayer['onButtonStateChange']} */
   onButtonStateChange(buttons) {
+    console.log('state button change', buttons)
     this.game.transport.publishButtons(this.playerIdx, buttons)
   }
 
@@ -41,7 +42,7 @@ export default class LocalPlayer extends BasePlayer {
     const mask = PADDLE_MASKS[input]
     this.rawButtons = setBit(this.rawButtons, mask, pressed)
 
-    let state = setBit(this.buttons, mask, pressed)
+    let state = setBit(this.state.buttons, mask, pressed)
 
     // Process SOCD for vertical input
     if (input === 'Down' || input === 'Up') {
