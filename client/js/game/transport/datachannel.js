@@ -1,10 +1,12 @@
 import BaseTransport from './base.js'
+
 export default class DataChannelTransport extends BaseTransport {
   /**
    * @param {RTCDataChannel} channel
+   * @param {import('./base.js').BaseTransportConfig} config
    */
-  constructor(channel) {
-    super()
+  constructor(channel, config = {}) {
+    super(config)
 
     this.onChannelMessage = this.onChannelMessage.bind(this)
 
@@ -27,7 +29,6 @@ export default class DataChannelTransport extends BaseTransport {
 
   /** @type {BaseTransport['send']} */
   send(packet) {
-    setTimeout(() => this.channel.send(packet), 150)
-    // this.channel.send(packet)
+    this.channel.send(packet)
   }
 }

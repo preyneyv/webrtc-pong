@@ -1,9 +1,30 @@
-import { BasePacket, PacketType, PublishButtonsPacket } from '../packets.js'
-
 /** @typedef {import('../game').default} GameInstance */
+
+import { BasePacket, PublishButtonsPacket } from '../packets.js'
+
+/** @typedef {{
+ *   absoluteDelay?: number,
+ *   jitterDelay?: number,
+ * }} BaseTransportConfig */
+
 export default class BaseTransport {
   txCounter = 0
   rxCounter = 0
+
+  /**
+   * @param {BaseTransportConfig} config
+   */
+  constructor({ absoluteDelay = 0, jitterDelay = 0 } = {}) {
+    if (absoluteDelay || jitterDelay) {
+      // wrap `send` with a delay
+      const innerSend = this.send.bind(this)
+      this.send = (buffer) =>
+        setTimeout(
+          () => innerSend(buffer),
+          absoluteDelay + jitterDelay * Math.random()
+        )
+    }
+  }
 
   destroy() {
     /* no op */
@@ -37,12 +58,7 @@ export default class BaseTransport {
    */
   onRecv(buffer) {
     const packet = BasePacket.unmarshal(buffer)
-    console.log('>> recv', packet)
     this.game.processPacket(packet)
-
-    // if (packet instanceof PublishButtonsPacket) {
-    //   this.game.players[packet.playerIdx].handlePublishButtons(packet)
-    // }
   }
 
   /**

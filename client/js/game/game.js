@@ -59,11 +59,6 @@ export default class GameInstance {
     this.players.forEach((player, i) => player.restoreInputs(players[i]))
   }
 
-  doTick() {
-    this.players.map((player) => player.tick(this.tick))
-    this.tick++
-  }
-
   /**
    * Add the packet to the rollback queue for processing at the next tick
    * @param {BasePacket} packet
@@ -126,7 +121,8 @@ export default class GameInstance {
       }
 
       // do physics
-      this.doTick()
+      this.players.map((player) => player.tick(this.tick))
+      this.tick++
 
       const frozenState = this.freeze()
       if (isTimeTravelling) {
