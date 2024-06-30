@@ -33,16 +33,31 @@ export class RingBuffer {
   }
 }
 
+/**
+ * Buffer that appends to one buffer while reading from the other.
+ * @template T
+ */
 export class BackBuffer {
+  /** @type {T[]} */
   front = []
+  /** @type {T[]} */
   back = []
+
+  /**
+   * @param  {...T} items
+   */
   push(...items) {
     this.back.push(...items)
   }
 
+  /**
+   * Clear the front buffer
+   * Swap the front and back buffers
+   * @returns {T[]}
+   */
   swap() {
+    this.front.length = 0
     ;[this.front, this.back] = [this.back, this.front]
-    this.back.length = 0
     return this.front
   }
 }

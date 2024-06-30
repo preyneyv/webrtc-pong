@@ -4,13 +4,13 @@
 import constants from './constants.js'
 import { BasePacket, PublishButtonsPacket } from './packets.js'
 import RemotePlayer from './players/remote.js'
-import { RingBuffer } from './rollback.js'
+import { BackBuffer, RingBuffer } from './rollback.js'
 
 export default class GameInstance {
   tick = 0
 
-  /** @type {BasePacket[]} */
-  packetQueue = []
+  /** @type {BackBuffer<BasePacket>} */
+  packetQueue = new BackBuffer()
 
   rollbackStateBuffer = new RingBuffer(constants.rollbackBufferSize)
 
@@ -77,10 +77,12 @@ export default class GameInstance {
    */
   render(pts) {
     const currentTick = this.tick
-    if (this.packetQueue.length) {
+    const packetQueue = this.packetQueue.swap()
+    let processedIdx = 0
+    if (packetQueue.length) {
       // sort buffer in packet order
-      this.packetQueue.sort((a, b) => a.idx - b.idx)
-      const earliestTick = this.packetQueue[0].tick
+      packetQueue.sort((a, b) => a.idx - b.idx)
+      const earliestTick = packetQueue[0].tick
       const delta = currentTick - earliestTick
 
       if (earliestTick < currentTick) {
@@ -97,7 +99,6 @@ export default class GameInstance {
     }
     const elapsed = pts - this.startedAt
     const endTick = Math.floor((elapsed * constants.tickRate) / 1000)
-    let processedIdx = 0
     while (this.tick < endTick) {
       const isTimeTravelling = this.tick < currentTick
       const stateBufferOffset = currentTick - this.tick
@@ -108,8 +109,8 @@ export default class GameInstance {
       }
 
       // process packets at the right timestep
-      while (processedIdx < this.packetQueue.length) {
-        const packet = this.packetQueue[processedIdx]
+      while (processedIdx < packetQueue.length) {
+        const packet = packetQueue[processedIdx]
         if (packet.tick < this.tick) {
           console.error('Too late for packet', packet, this.tick)
           throw new Error('Too late for packet.')
@@ -136,16 +137,9 @@ export default class GameInstance {
         this.rollbackStateBuffer.push(frozenState)
       }
     }
-    // if (this.packetQueue.length)
-    //   console.log(
-    //     'ptr',
-    //     processedIdx,
-    //     this.packetQueue.length,
-    //     this.packetQueue
-    //   )
 
-    // remove processed packets from queue
-    this.packetQueue = this.packetQueue.slice(processedIdx)
+    // re-add unprocessed packets to buffer
+    this.packetQueue.push(...packetQueue.slice(processedIdx))
 
     this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height)
     this.players.map((player) => player.render(this.ctx))
