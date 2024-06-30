@@ -3,31 +3,25 @@
 
 import constants from './constants.js'
 
-const WIDTH = 1280
-const HEIGHT = 720
-
 export default class GameInstance {
   tick = 0
   /**
    * @param {BaseTransport} transport
-   * @param {BasePlayer} player1
-   * @param {Player} player2
+   * @param {[BasePlayer, BasePlayer]} players
    * @param {HTMLCanvasElement} canvasEl
    */
-  constructor(transport, player1, player2, canvasEl) {
+  constructor(transport, players, canvasEl) {
     this.render = this.render.bind(this)
 
     this.transport = transport
+    transport.bindToGame(this)
 
-    this.player1 = player1
-    player1.bindToGame(this, 0)
-
-    this.player2 = player2
-    player2.bindToGame(this, 1)
+    this.players = players
+    players.map((player, i) => player.bindToGame(this, i))
 
     this.canvasEl = canvasEl
-    canvasEl.width = WIDTH
-    canvasEl.height = HEIGHT
+    canvasEl.width = constants.width
+    canvasEl.height = constants.height
     this.ctx = canvasEl.getContext('2d')
 
     this.startedAt = performance.now()
@@ -41,14 +35,12 @@ export default class GameInstance {
     const elapsed = pts - this.startedAt
     const targetTick = Math.floor((elapsed * constants.tickRate) / 1000)
     while (this.tick < targetTick) {
-      this.player1.tick(this.tick)
-      this.player2.tick(this.tick)
+      this.players.map((player) => player.tick(this.tick))
       this.tick++
     }
 
     this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height)
-    this.player1.render(this.ctx)
-    this.player2.render(this.ctx)
+    this.players.map((player) => player.render(this.ctx))
 
     requestAnimationFrame(this.render)
   }

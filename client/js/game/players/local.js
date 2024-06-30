@@ -28,6 +28,11 @@ export default class LocalPlayer extends BasePlayer {
     this.verticalCleaner = getSOCDCleaner(socdVertical)
   }
 
+  /** @type {BasePlayer['onButtonStateChange']} */
+  onButtonStateChange(buttons) {
+    this.game.transport.publishButtons(this.playerIdx, buttons)
+  }
+
   /**
    * @param {PaddleInput} input
    * @param {boolean} pressed

@@ -109,18 +109,15 @@ async function negotiatePeerConnection(oppUsername, oppSessionId, role) {
       connectionState[0].toUpperCase() + connectionState.slice(1)
   })
 
-  dataChannel.addEventListener('message', ({ data }) => {
-    console.log('dc', data)
-  })
   dataChannel.addEventListener('open', () => {
     console.log('p2p connection opened')
     const transport = new DataChannelTransport(dataChannel)
 
     const localPlayer = new KeyboardLocalPlayer()
     const remotePlayer = new RemotePlayer()
-    let player1 = role === 'caller' ? localPlayer : remotePlayer
-    let player2 = role === 'caller' ? remotePlayer : localPlayer
+    const players = [localPlayer, remotePlayer]
+    if (role === 'caller') players.reverse()
 
-    new GameInstance(transport, player1, player2, scenes.game.$('#game-board'))
+    new GameInstance(transport, players, scenes.game.$('#game-board'))
   })
 }

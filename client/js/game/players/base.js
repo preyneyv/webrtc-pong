@@ -66,11 +66,18 @@ export default class BasePlayer {
 
   /**
    *
+   */
+  onButtonStateChange(buttons) {
+    /* no op */
+  }
+
+  /**
+   *
    * @param {number} buttons
    */
   setButtonState(buttons) {
     if (buttons !== this.buttons) {
-      // console.log('changed', buttons)
+      this.onButtonStateChange(buttons)
     }
     this.buttons = buttons
   }

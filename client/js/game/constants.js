@@ -1,7 +1,8 @@
 const constants = {
-  tickRate: 128,
   width: 1280,
   height: 720,
+
+  tickRate: 128,
 
   paddleHeight: 120,
   paddleWidth: 16,
