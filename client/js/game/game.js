@@ -5,8 +5,9 @@ import constants from './constants.js'
 import { BasePacket, PublishButtonsPacket } from './packets.js'
 import RemotePlayer from './players/remote.js'
 import { BackBuffer, RingBuffer } from './rollback.js'
+import EventEmitter from './events.js'
 
-export default class GameInstance {
+export default class GameInstance extends EventEmitter {
   tick = 0
 
   /** @type {BackBuffer<BasePacket>} */
@@ -20,6 +21,7 @@ export default class GameInstance {
    * @param {HTMLCanvasElement} canvasEl
    */
   constructor(transport, players, canvasEl) {
+    super()
     this.render = this.render.bind(this)
 
     this.transport = transport
@@ -112,11 +114,12 @@ export default class GameInstance {
         }
         if (packet.tick > this.tick) break // we're now up-to-date until the "present"
 
-        if (packet instanceof PublishButtonsPacket) {
-          /** @type {RemotePlayer} */ this.players[
-            packet.playerIdx
-          ].handlePublishButtons(packet)
-        }
+        this.emit('packet', packet)
+        // if (packet instanceof PublishButtonsPacket) {
+        //   /** @type {RemotePlayer} */ this.players[
+        //     packet.playerIdx
+        //   ].handlePublishButtons(packet)
+        // }
         processedIdx++
       }
 

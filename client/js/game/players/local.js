@@ -30,7 +30,6 @@ export default class LocalPlayer extends BasePlayer {
 
   /** @type {BasePlayer['onButtonStateChange']} */
   onButtonStateChange(buttons) {
-    console.log('state button change', buttons)
     this.game.transport.publishButtons(this.playerIdx, buttons)
   }
 

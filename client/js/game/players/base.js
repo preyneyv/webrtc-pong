@@ -46,6 +46,15 @@ export default class BasePlayer {
     this.game = game
     this.playerIdx = playerIdx
     this.paddleX = playerIdx === 0 ? 0 : constants.width - constants.paddleWidth
+
+    this.setup()
+  }
+
+  /**
+   * Called a single time when this Player object is attached to a game.
+   */
+  setup() {
+    /* no op */
   }
 
   freeze() {

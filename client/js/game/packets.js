@@ -141,6 +141,18 @@ export class BasePacket {
   static fromBytes(base, reader) {
     return base
   }
+
+  /**
+   * @template T
+   * @param {T} Target
+   * @returns {InstanceType<T> | undefined}
+   */
+  downcast(Target) {
+    if (this instanceof Target) {
+      return this
+    }
+    return undefined
+  }
 }
 
 export class PublishButtonsPacket extends BasePacket {
