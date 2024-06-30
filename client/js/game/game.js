@@ -35,15 +35,6 @@ export default class GameInstance {
 
     this.startedAt = performance.now()
     requestAnimationFrame(this.render)
-
-    this.isRunning = true
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        this.isRunning = false
-        console.log('FREEZE')
-        console.log(this)
-      }
-    })
   }
 
   freeze() {
@@ -85,95 +76,55 @@ export default class GameInstance {
    * @param {DOMHighResTimeStamp} pts
    */
   render(pts) {
-    if (!this.isRunning) return
     const currentTick = this.tick
     if (this.packetQueue.length) {
       // sort buffer in packet order
       this.packetQueue.sort((a, b) => a.idx - b.idx)
       const earliestTick = this.packetQueue[0].tick
       const delta = currentTick - earliestTick
-      // console.log(
-      //   'processing packet rollback',
-      //   earliestTick,
-      //   currentTick,
-      //   packetQueue
-      // )
 
-      // console.log(earliestTick, currentTick)
       if (earliestTick < currentTick) {
         // initiate a rollback
 
         // rewind to right before target tick
         const targetState = this.rollbackStateBuffer.retrieve(delta + 1)
-        // console.log(targetTick, currentTick, delta, targetState)
         if (!targetState) {
           console.error('No rollback state for', earliestTick)
           return
         }
         this.restoreState(targetState, true)
       }
-      // while (this.tick < currentTick) {
-      //   // console.log('rollback', this.tick, adjustedDelta)
-      //   // console.log('ticks', this.tick, targetTick, currentTick, adjustedDelta)
-      //   const stateBufferOffset = currentTick - this.tick
-      //   this.restoreInputs(this.rollbackStateBuffer.retrieve(stateBufferOffset))
-
-      //   // apply rollback packets as necessary
-      //   for (let i = 0; i < this.packetQueue.length; i++) {
-      //     const packet = this.packetQueue[i]
-      //     if (packet.tick < this.tick) continue
-      //     else if (packet.tick > this.tick) break
-
-      //     if (packet instanceof PublishButtonsPacket) {
-      //       /** @type {RemotePlayer} */ this.players[
-      //         packet.playerIdx
-      //       ].handlePublishButtons(packet)
-      //     }
-      //   }
-      //   this.doTick()
-      //   this.rollbackStateBuffer.set(stateBufferOffset, this.freeze())
-      // }
     }
     const elapsed = pts - this.startedAt
     const endTick = Math.floor((elapsed * constants.tickRate) / 1000)
-    // if (this.tick === endTick && havePackets) console.warn('skip')
-    let queueProcessPointer = 0
+    let processedIdx = 0
     while (this.tick < endTick) {
       const isTimeTravelling = this.tick < currentTick
       const stateBufferOffset = currentTick - this.tick
 
       if (isTimeTravelling) {
-        // console.log('rollback', this.tick, currentTick, endTick)
         // restore inputs to what they were in the past
         this.restoreInputs(this.rollbackStateBuffer.retrieve(stateBufferOffset))
       }
 
-      // this.packetQueue.length &&
-      // console.log('tick master', this.tick, this.packetQueue)
-      // process incoming packets
-      // if (packetQueue.length) {
-      //   console.log('tick packet', this.tick, this.packetQueue)
-      // }
-      // if (havePackets)
-      // console.log('pktcompare', havePackets, packetQueue.length, packetQueue)
-      // if (packetQueue.length) console.log('packets', packetQueue)
-      for (
-        ;
-        queueProcessPointer < this.packetQueue.length;
-        queueProcessPointer++
-      ) {
-        const packet = this.packetQueue[queueProcessPointer]
-        if (packet.tick > this.tick) break
-        // if (packet.tick < this.tick) continue
-        // else if (packet.tick > this.tick) break
+      // process packets at the right timestep
+      while (processedIdx < this.packetQueue.length) {
+        const packet = this.packetQueue[processedIdx]
+        if (packet.tick < this.tick) {
+          console.error('Too late for packet', packet, this.tick)
+          throw new Error('Too late for packet.')
+        }
+        if (packet.tick > this.tick) break // we're now up-to-date until the "present"
 
         if (packet instanceof PublishButtonsPacket) {
           /** @type {RemotePlayer} */ this.players[
             packet.playerIdx
           ].handlePublishButtons(packet)
         }
+        processedIdx++
       }
 
+      // do physics
       this.doTick()
 
       const frozenState = this.freeze()
@@ -185,15 +136,16 @@ export default class GameInstance {
         this.rollbackStateBuffer.push(frozenState)
       }
     }
-    if (this.packetQueue.length)
-      console.log(
-        'ptr',
-        queueProcessPointer,
-        this.packetQueue.length,
-        this.packetQueue
-      )
-    // this.packetQueue.push(...this.packetQueue.slice(queueProcessPointer))
-    this.packetQueue = this.packetQueue.slice(queueProcessPointer)
+    // if (this.packetQueue.length)
+    //   console.log(
+    //     'ptr',
+    //     processedIdx,
+    //     this.packetQueue.length,
+    //     this.packetQueue
+    //   )
+
+    // remove processed packets from queue
+    this.packetQueue = this.packetQueue.slice(processedIdx)
 
     this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height)
     this.players.map((player) => player.render(this.ctx))

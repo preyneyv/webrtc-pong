@@ -32,3 +32,17 @@ export class RingBuffer {
     this.buffer[target] = item
   }
 }
+
+export class BackBuffer {
+  front = []
+  back = []
+  push(...items) {
+    this.back.push(...items)
+  }
+
+  swap() {
+    ;[this.front, this.back] = [this.back, this.front]
+    this.back.length = 0
+    return this.front
+  }
+}
