@@ -68,6 +68,10 @@ export default class BasePlayer {
     /* no op */
   }
 
+  destroy() {
+    /* no op */
+  }
+
   freeze() {
     return structuredClone(this.state)
   }
@@ -167,7 +171,7 @@ export default class BasePlayer {
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(
-      this.username,
+      this.username.slice(0, 16),
       this.playerIdx === 0 ? constants.width / 4 : (constants.width * 3) / 4,
       constants.height / 2 + 120
     )

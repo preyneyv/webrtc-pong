@@ -1,6 +1,8 @@
 export default class EventEmitter extends EventTarget {
   on(eventName, listener) {
-    this.addEventListener(eventName, ({ detail }) => listener(detail))
+    const callback = ({ detail }) => listener(detail)
+    this.addEventListener(eventName, callback)
+    return { destroy: () => this.off(eventName, callback) }
   }
 
   once(eventName, listener) {

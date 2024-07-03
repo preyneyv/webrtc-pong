@@ -58,7 +58,7 @@ export default class BaseTransport {
    */
   onRecv(buffer) {
     const packet = BasePacket.unmarshal(buffer)
-    this.game.processPacket(packet)
+    this.game.handlePacket(packet)
   }
 
   /**

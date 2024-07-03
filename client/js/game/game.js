@@ -6,15 +6,17 @@ import { Ball } from './ball.js'
 import constants from './constants.js'
 import EventEmitter from './events.js'
 import { BasePacket } from './packets.js'
-import { BackBuffer, RingBuffer } from './rollback.js'
+import { BackBuffer, PacketQueue, RingBuffer } from './rollback.js'
 
 export default class GameInstance extends EventEmitter {
   tick = 0
   score = [0, 0]
   anim = new AnimationController()
 
-  /** @type {BackBuffer<BasePacket>} */
-  packetQueue = new BackBuffer()
+  // /** @type {BackBuffer<BasePacket>} */
+  // packetQueue = new BackBuffer()
+
+  packetQueue = new PacketQueue()
 
   rollbackStateBuffer = new RingBuffer(constants.rollbackBufferSize)
 
@@ -111,7 +113,7 @@ export default class GameInstance extends EventEmitter {
    * Add the packet to the rollback queue for processing at the next tick
    * @param {BasePacket} packet
    */
-  processPacket(packet) {
+  handlePacket(packet) {
     this.packetQueue.push(packet)
   }
 
@@ -120,11 +122,11 @@ export default class GameInstance extends EventEmitter {
    */
   render(pts) {
     const currentTick = this.tick
-    const packetQueue = this.packetQueue.swap()
+    const packetQueue = this.packetQueue.getDamagedSlice()
+    // const packetQueue = this.packetQueue.swap()
     let processedIdx = 0
     if (packetQueue.length) {
-      // sort buffer in packet order
-      packetQueue.sort((a, b) => a.idx - b.idx)
+      console.log('packetQueue', packetQueue)
       const earliestTick = packetQueue[0].tick
       const delta = currentTick - earliestTick
 
@@ -182,8 +184,9 @@ export default class GameInstance extends EventEmitter {
       }
     }
 
+    this.packetQueue.resetDamage(this.tick)
     // re-add unprocessed packets to buffer
-    this.packetQueue.push(...packetQueue.slice(processedIdx))
+    // this.packetQueue.push(...packetQueue.slice(processedIdx))
 
     const { ctx } = this
     ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height)

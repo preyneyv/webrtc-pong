@@ -19,11 +19,11 @@ const scenes = {
 scenes.joinForm.show()
 scenes.joinForm.$('form').addEventListener('submit', (e) => {
   e.preventDefault()
-  const username = scenes.joinForm.$('.username').value
+  const username = scenes.joinForm.$('.username').value.trim() || null
   joinQueue(username)
 })
 
-// joinQueue(sessionId)
+joinQueue(sessionId)
 
 function joinQueue(username) {
   console.log('self:', username)
@@ -100,6 +100,7 @@ async function negotiatePeerConnection(selfUsername, oppUsername, role) {
 
   const dataChannel = pc.createDataChannel('transport', {
     negotiated: true,
+    ordered: false,
     id: 1,
   })
 
@@ -115,6 +116,10 @@ async function negotiatePeerConnection(selfUsername, oppUsername, role) {
 
     const localPlayer = new KeyboardLocalPlayer({ username: selfUsername })
     const remotePlayer = new RemotePlayer({ username: oppUsername })
+    // const remotePlayer = new KeyboardLocalPlayer({
+    //   username: oppUsername,
+    //   keybinds: { KeyE: 'Up', KeyD: 'Down' },
+    // })
     const players = [localPlayer, remotePlayer]
     if (role === 'caller') players.reverse()
 

@@ -3,7 +3,7 @@ import BasePlayer from './base.js'
 
 export default class RemotePlayer extends BasePlayer {
   setup() {
-    this.game.on(
+    this.packetListener = this.game.on(
       'packet',
       /**
        * @param {BasePacket} packet
@@ -17,6 +17,10 @@ export default class RemotePlayer extends BasePlayer {
       }
     )
   }
+  destroy() {
+    this.packetListener.destroy()
+  }
+
   /**
    *
    * @param {PublishButtonsPacket} packet
