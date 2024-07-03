@@ -22,11 +22,13 @@ export default class GameInstance extends EventEmitter {
    * @param {BaseTransport} transport
    * @param {[BasePlayer, BasePlayer]} players
    * @param {HTMLCanvasElement} canvasEl
+   * @param {boolean} isHost
    */
-  constructor(transport, players, canvasEl) {
+  constructor(transport, players, canvasEl, isHost) {
     super()
     this.render = this.render.bind(this)
 
+    this.isHost = true
     this.transport = transport
     transport.bindToGame(this)
 
@@ -56,7 +58,8 @@ export default class GameInstance extends EventEmitter {
         0
       )
       grad.addColorStop(0, 'rgba(255, 255, 255, 0.1)')
-      grad.addColorStop(0.5, 'rgba(255, 255, 255, 0)')
+      grad.addColorStop(0.3, 'rgba(255, 255, 255, 0.07)')
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0)')
       ctx.fillStyle = grad
       ctx.fillRect(0, 0, constants.width, constants.height)
       ctx.font = '36px "Space Grotesk", sans-serif'
@@ -133,6 +136,7 @@ export default class GameInstance extends EventEmitter {
         // rewind to right before target tick
         const targetState = this.rollbackStateBuffer.retrieve(delta + 1)
         if (!targetState) {
+          // TODO: implement state synchronization from host to client
           console.error('No rollback state for', earliestTick)
           return
         }

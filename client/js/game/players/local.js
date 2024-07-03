@@ -6,7 +6,8 @@ import BasePlayer, { PADDLE_MASKS } from './base.js'
 import getSOCDCleaner, { SOCDCleaner } from './support/socd.js'
 
 /** @typedef {{
- *   socdVertical: SOCDCleanerType
+ *   socdVertical: SOCDCleanerType,
+ *   username?: string
  * }} LocalPlayerConfig */
 
 /**
@@ -23,8 +24,8 @@ export default class LocalPlayer extends BasePlayer {
    *
    * @param {LocalPlayerConfig} config
    */
-  constructor({ socdVertical = 'lastInput' } = {}) {
-    super()
+  constructor({ socdVertical = 'lastInput', username = undefined } = {}) {
+    super({ username })
     this.verticalCleaner = getSOCDCleaner(socdVertical)
   }
 
@@ -78,8 +79,9 @@ export class KeyboardLocalPlayer extends LocalPlayer {
       ArrowDown: 'Down',
     },
     socdVertical,
+    username,
   } = {}) {
-    super({ socdVertical })
+    super({ socdVertical, username })
     this.keybinds = keybinds
 
     this.keydownListener = this.keydownListener.bind(this)

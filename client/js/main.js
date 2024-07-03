@@ -23,10 +23,10 @@ scenes.joinForm.$('form').addEventListener('submit', (e) => {
   joinQueue(username)
 })
 
-joinQueue(sessionId)
+// joinQueue(sessionId)
 
 function joinQueue(username) {
-  console.log('self:', username, sessionId)
+  console.log('self:', username)
 
   scenes.joinForm.hide()
   scenes.inQueue.show()
@@ -47,15 +47,15 @@ function joinQueue(username) {
   })
 
   socket.on('match-found', (spec) =>
-    negotiatePeerConnection(spec.username, spec.sessionId, spec.role)
+    negotiatePeerConnection(username, spec.username, spec.role)
   )
 }
 
-async function negotiatePeerConnection(oppUsername, oppSessionId, role) {
+async function negotiatePeerConnection(selfUsername, oppUsername, role) {
   scenes.inQueue.hide()
   scenes.game.show()
 
-  console.log('opponent:', oppUsername, oppSessionId)
+  console.log('opponent:', oppUsername)
   console.log('role:', role)
   const pc = new RTCPeerConnection({
     iceServers: ICE_SERVERS,
@@ -113,11 +113,16 @@ async function negotiatePeerConnection(oppUsername, oppSessionId, role) {
     console.log('p2p connection opened')
     const transport = new DataChannelTransport(dataChannel)
 
-    const localPlayer = new KeyboardLocalPlayer()
-    const remotePlayer = new RemotePlayer()
+    const localPlayer = new KeyboardLocalPlayer({ username: selfUsername })
+    const remotePlayer = new RemotePlayer({ username: oppUsername })
     const players = [localPlayer, remotePlayer]
     if (role === 'caller') players.reverse()
 
-    new GameInstance(transport, players, scenes.game.$('#game-board'))
+    new GameInstance(
+      transport,
+      players,
+      scenes.game.$('#game-board'),
+      role === 'caller'
+    )
   })
 }

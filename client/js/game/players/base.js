@@ -38,6 +38,14 @@ export default class BasePlayer {
   state = new PlayerState()
 
   /**
+   *
+   * @param {{ username?: string }} config
+   */
+  constructor({ username } = {}) {
+    this.username = username
+  }
+
+  /**
    * @param {GameInstance} game
    * @param {number} playerIdx
    */
@@ -47,6 +55,8 @@ export default class BasePlayer {
     this.game = game
     this.playerIdx = playerIdx
     this.paddleX = playerIdx === 0 ? 0 : constants.width - constants.paddleWidth
+
+    if (this.username === undefined) this.username = `Player ${playerIdx + 1}`
 
     this.setup()
   }
@@ -150,6 +160,16 @@ export default class BasePlayer {
       this.state.y,
       constants.paddleWidth,
       constants.paddleHeight
+    )
+
+    ctx.globalAlpha = 0.15
+    ctx.font = '32px "Space Grotesk", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(
+      this.username,
+      this.playerIdx === 0 ? constants.width / 4 : (constants.width * 3) / 4,
+      constants.height / 2 + 120
     )
     ctx.restore()
   }
