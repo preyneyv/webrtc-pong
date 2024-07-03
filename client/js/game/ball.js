@@ -36,14 +36,13 @@ export class Ball {
 
   tick() {
     let { vx, vy, x, y, r, spin } = this.state
-    const { players } = this.game
+    const { paddles } = this.game
 
     vy = ((vy + spin * 1.5 * 100) << 0) / 100
     x = (((x + vx) * 100) << 0) / 100
     y = (((y + vy) * 100) << 0) / 100
 
     /* TODO: Refactor this into logic with colliders and a physics engine. */
-
     if (y + r > constants.height) {
       // bottom wall bounce
       y = constants.height - r
@@ -58,26 +57,26 @@ export class Ball {
       this.game.anim.add(50, this.impactAnim(x, 0, r))
     } else if (
       x + r > constants.width - constants.paddleWidth &&
-      y > players[1].state.y &&
-      y < players[1].state.y + constants.paddleHeight
+      y > paddles[1].state.y &&
+      y < paddles[1].state.y + constants.paddleHeight
     ) {
       // right paddle bounce
       x = constants.width - constants.paddleWidth - r
       vx = -vx
-      spin = players[1].state.vy + spin / 2
+      spin = paddles[1].state.vy + spin / 2
       this.game.anim.add(
         50,
         this.impactAnim(constants.width - constants.paddleWidth, y, r)
       )
     } else if (
       x - r < constants.paddleWidth &&
-      y > players[0].state.y &&
-      y < players[0].state.y + constants.paddleHeight
+      y > paddles[0].state.y &&
+      y < paddles[0].state.y + constants.paddleHeight
     ) {
       // left paddle bounce
       x = constants.paddleWidth + r
       vx = -vx
-      spin = players[0].state.vy + spin / 2
+      spin = paddles[0].state.vy + spin / 2
       this.game.anim.add(50, this.impactAnim(constants.paddleWidth, y, r))
     } else if (x - r > constants.width + 10) {
       // left player score
@@ -88,7 +87,7 @@ export class Ball {
       vy = 0
       spin = 0
     } else if (x + r < -10) {
-      // right player score
+      // right score
       this.game.recordScore(1)
       x = constants.width / 2
       y = constants.height / 2

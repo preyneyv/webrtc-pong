@@ -5,12 +5,6 @@ export const PacketType = {
   PublishButtons: 0,
 }
 
-// /** @type {Record<PacketType, keyof typeof PacketType>} */
-// const InversePacketTypes = Object.entries(PacketType).reduce(
-//   (accum, [key, num]) => ((accum[num] = key), accum),
-//   {}
-// )
-
 export class BytesBuffer {
   head = 0
   /**
@@ -96,7 +90,7 @@ export class BasePacket {
   }
 
   /**
-   * Marshall the packet to an ArrayBuffer
+   * Marshal the packet to an ArrayBuffer
    * @returns {ArrayBuffer}
    */
   marshal() {

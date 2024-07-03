@@ -1,11 +1,12 @@
 import '/socket.io/socket.io.js'
 
 import { ICE_SERVERS } from './constants.js'
-import GameInstance from './game/game.js'
-import { KeyboardLocalPlayer } from './game/players/local.js'
+import GameInstance, { Player } from './game/game.js'
+import { KeyboardController } from './game/players/local.js'
 import RemotePlayer from './game/players/remote.js'
 import DataChannelTransport from './game/transport/datachannel.js'
 import Scene from './scene.js'
+import RemoteController from './game/players/remote.js'
 
 let socket
 const sessionId = crypto.randomUUID()
@@ -112,22 +113,19 @@ async function negotiatePeerConnection(selfUsername, oppUsername, role) {
 
   dataChannel.addEventListener('open', () => {
     console.log('p2p connection opened')
-    const transport = new DataChannelTransport(dataChannel)
+    const transport = new DataChannelTransport(dataChannel, {
+      absoluteDelay: 20,
+      // jitterDelay: 500,
+    })
 
-    const localPlayer = new KeyboardLocalPlayer({ username: selfUsername })
-    const remotePlayer = new RemotePlayer({ username: oppUsername })
-    // const remotePlayer = new KeyboardLocalPlayer({
-    //   username: oppUsername,
-    //   keybinds: { KeyE: 'Up', KeyD: 'Down' },
-    // })
-    const players = [localPlayer, remotePlayer]
-    if (role === 'caller') players.reverse()
+    const isHost = role === 'caller'
 
-    new GameInstance(
-      transport,
-      players,
-      scenes.game.$('#game-board'),
-      role === 'caller'
-    )
+    const players = [
+      new Player(selfUsername, new KeyboardController()),
+      new Player(oppUsername),
+    ]
+    if (!isHost) players.reverse()
+
+    new GameInstance(transport, players, scenes.game.$('#game-board'), isHost)
   })
 }

@@ -1,9 +1,17 @@
+/** @typedef {import('../game').default} GameInstance */
+
 const NOW = Symbol('now')
 export default class AnimationController {
   active = {}
   nextId = 0
 
-  constructor() {}
+  /**
+   *
+   * @param {GameInstance} game
+   */
+  constructor(game) {
+    this.game = game
+  }
 
   /**
    * @param {CanvasRenderingContext2D} ctx
@@ -28,6 +36,7 @@ export default class AnimationController {
    */
   add(duration, callback, { start = NOW, easing = Easing.linear } = {}) {
     const id = this.nextId++
+    if (start === NOW) start = this.game.tick + 1
     this.active[id] = new Animation(id, duration, callback, start, easing)
     return id
   }
@@ -52,12 +61,14 @@ export const Easing = {
 
 export class Animation {
   /**
-   * @param {number | typeof NOW} start
+   * @param {number} id
    * @param {number} duration
    * @param {(ctx: CanvasRenderingContext2D, t: number) => void} callback
+   * @param {number} start
    * @param {(start: number, end: number, t: number) => number} easing
    */
   constructor(id, duration, callback, start = NOW, easing = Easing.linear) {
+    this.id = id
     this.start = start
     this.duration = duration
     this.callback = callback
@@ -69,7 +80,6 @@ export class Animation {
   }
 
   render(ctx, tick) {
-    if (this.start === NOW) this.start = tick
     this.callback(
       ctx,
       this.easing(this.start, this.start + this.duration, tick)

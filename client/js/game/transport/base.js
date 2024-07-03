@@ -1,6 +1,7 @@
 /** @typedef {import('../game').default} GameInstance */
 
-import { BasePacket, PublishButtonsPacket } from '../packets.js'
+import constants from '../constants.js'
+import { BasePacket, PublishButtonsPacket } from '../lib/packets.js'
 
 /** @typedef {{
  *   absoluteDelay?: number,
@@ -41,7 +42,8 @@ export default class BaseTransport {
   }
 
   /**
-   * Send the given message over the transport
+   * Send the given message over the transport.
+   * To be overridden by subclasses
    * @abstract
    * @protected
    * @param {ArrayBuffer} buffer
@@ -53,12 +55,13 @@ export default class BaseTransport {
   /**
    * Handle the reception of a new packet and route it to the appropriate
    * consumer.
+   * To be called by subclasses when a new packet is received.
    * @protected
    * @param {ArrayBuffer} buffer
    */
   onRecv(buffer) {
     const packet = BasePacket.unmarshal(buffer)
-    this.game.handlePacket(packet)
+    this.game.packetQueue.push(packet)
   }
 
   /**
@@ -67,6 +70,7 @@ export default class BaseTransport {
    */
   sendPacket(packet) {
     this.send(packet.marshal())
+    this.game.packetQueue.push(packet)
   }
 
   /**
@@ -78,7 +82,7 @@ export default class BaseTransport {
   publishButtons(playerIdx, buttons) {
     const packet = new PublishButtonsPacket(
       this.txCounter++,
-      this.game.tick,
+      this.game.tick + constants.inputDelay,
       playerIdx,
       buttons
     )

@@ -1,20 +1,15 @@
-/** @typedef {import('./base.js').PaddleInput} PaddleInput */
+/** @typedef {import('../paddle.js').PaddleInput} PaddleInput */
+/** @typedef {import('./base.js').BaseControllerConfig} BaseControllerConfig */
 /** @typedef {import('./support/socd.js').SOCDCleanerType} SOCDCleanerType */
 
-import { setBit } from '../../utils.js'
-import BasePlayer, { PADDLE_MASKS } from './base.js'
-import getSOCDCleaner, { SOCDCleaner } from './support/socd.js'
-
-/** @typedef {{
- *   socdVertical: SOCDCleanerType,
- *   username?: string
- * }} LocalPlayerConfig */
+import BaseController from './base.js'
+import { SOCDCleaner } from './support/socd.js'
 
 /**
  * A superclass for all locally-driven paddles. Handles things like input
  * cleaning.
  */
-export default class LocalPlayer extends BasePlayer {
+export default class LocalPlayer extends BaseController {
   rawButtons = 0
 
   /** @type {SOCDCleaner} */
@@ -22,56 +17,23 @@ export default class LocalPlayer extends BasePlayer {
 
   /**
    *
-   * @param {LocalPlayerConfig} config
+   * @param {BaseControllerConfig} config
    */
-  constructor({ socdVertical = 'lastInput', username = undefined } = {}) {
-    super({ username })
-    this.verticalCleaner = getSOCDCleaner(socdVertical)
-  }
-
-  /** @type {BasePlayer['onButtonStateChange']} */
-  onButtonStateChange(buttons) {
-    this.game.transport.publishButtons(this.playerIdx, buttons)
-  }
-
-  /**
-   * @param {PaddleInput} input
-   * @param {boolean} pressed
-   */
-  processInput(input, pressed) {
-    const mask = PADDLE_MASKS[input]
-    this.rawButtons = setBit(this.rawButtons, mask, pressed)
-
-    let state = setBit(this.state.buttons, mask, pressed)
-
-    // Process SOCD for vertical input
-    if (input === 'Down' || input === 'Up') {
-      const positive = this.rawButtons & PADDLE_MASKS.Up
-      const negative = this.rawButtons & PADDLE_MASKS.Down
-
-      const cleaned = this.verticalCleaner.clean(positive, negative)
-
-      state = setBit(state, PADDLE_MASKS.Up, cleaned === 1)
-      state = setBit(state, PADDLE_MASKS.Down, cleaned === -1)
-    }
-
-    this.setButtonState(state)
+  constructor({ socdVertical } = {}) {
+    super({ socdVertical })
   }
 }
 
-/** @typedef {Partial<LocalPlayerConfig> & {
+/** @typedef {Partial<BaseControllerConfig> & {
  *   keybinds: Record<string, PaddleInput>
- * }} KeyboardLocalPlayerConfig */
-
-/** @type {KeyboardLocalPlayerConfig} */
-export const defaultKeyboardLocalPlayerConfig = {}
+ * }} KeyboardControllerConfig */
 
 /**
- * A LocalPlayer that binds to keyboard events.
+ * A Controller that binds to keyboard events.
  */
-export class KeyboardLocalPlayer extends LocalPlayer {
+export class KeyboardController extends BaseController {
   /**
-   * @param {KeyboardLocalPlayerConfig} config
+   * @param {KeyboardControllerConfig} config
    */
   constructor({
     keybinds = {
@@ -79,9 +41,8 @@ export class KeyboardLocalPlayer extends LocalPlayer {
       ArrowDown: 'Down',
     },
     socdVertical,
-    username,
   } = {}) {
-    super({ socdVertical, username })
+    super({ socdVertical })
     this.keybinds = keybinds
 
     this.keydownListener = this.keydownListener.bind(this)

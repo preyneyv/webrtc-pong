@@ -1,10 +1,10 @@
 const constants = {
   width: 1280,
   height: 720,
-  scale: 1000, // fixed point scale factor
 
   tickRate: 128,
   rollbackBufferSize: 128 * 5, // 5 seconds of rollbackability
+  inputDelay: 3, // = 3 * 1000 / 128 = 23ms
 
   paddleHeight: 120,
   paddleWidth: 16,
