@@ -26,6 +26,7 @@ export const PADDLE_MASKS = Object.entries(PaddleBitFlags).reduce(
  */
 export class PlayerState {
   y = (constants.height - constants.paddleHeight) / 2
+  vy = 0
   buttons = 0
 }
 
@@ -105,6 +106,7 @@ export default class BasePlayer {
    * @param {number} tick
    */
   tick(tick) {
+    let { vy, y } = this.state
     let direction = 0
     if (this.isPressed('Up') && this.isPressed('Down')) {
       // SOCD: Neutral
@@ -117,10 +119,23 @@ export default class BasePlayer {
     } else {
       direction = 0
     }
-    this.state.y += direction * constants.paddleSpeed
-    if (this.state.y < 0) this.state.y = 0
-    if (this.state.y + constants.paddleHeight > constants.height)
-      this.state.y = constants.height - constants.paddleHeight
+
+    if (direction === 0) {
+      vy = Math.trunc(vy * 0.9 * 100) / 100
+    } else {
+      vy = direction * constants.paddleSpeed
+    }
+    y += vy
+    if (y < 0) {
+      y = 0
+      vy = 0
+    }
+    if (y + constants.paddleHeight > constants.height) {
+      y = constants.height - constants.paddleHeight
+      vy = 0
+    }
+
+    Object.assign(this.state, { vy, y })
   }
 
   /**
