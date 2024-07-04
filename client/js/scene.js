@@ -21,7 +21,3 @@ export default class Scene {
     return this.el.querySelector(selector)
   }
 }
-
-// export const joinForm = new Scene('#scene-join-form')
-// export const inQueue = new Scene('#scene-in-queue')
-// export const game = new Scene('#scene-game')

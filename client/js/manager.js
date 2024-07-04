@@ -9,6 +9,8 @@ import DataChannelTransport from './game/transport/datachannel.js'
 import LoopbackTransport from './game/transport/loopback.js'
 import { $ } from './lib/utils.js'
 import NegotiatedPeerConnection from './negotiation.js'
+import Scene from './scene.js'
+import ConfigScene from './scenes/config.js'
 
 /** @typedef {{
  *    username: string,
@@ -52,8 +54,22 @@ export const defaultGameConfig = {
 }
 
 export default class GameManager {
-  constructor(changeScene) {
-    this.changeScene = changeScene
+  scenes = {
+    config: new ConfigScene('#scene-config', (config) =>
+      this.beginWithConfig(config)
+    ),
+    inQueue: new Scene('#scene-in-queue'),
+    game: new Scene('#scene-game'),
+  }
+
+  constructor() {
+    // begin on the config scene
+    this.changeScene('config')
+  }
+
+  changeScene(target) {
+    Object.values(this.scenes).forEach((scene) => scene.hide())
+    this.scenes[target].show()
   }
 
   /**

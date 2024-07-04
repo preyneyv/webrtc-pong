@@ -233,6 +233,7 @@ function ConfigScreen({ onStart }) {
         <option value="local">Local</option>
       </select>
     </header>
+    <div class="deets">Peer-to-peer rollback netcode powered by WebRTC.</div>
     <div class="player-config-grid">
       <${PlayerConfig}
         player=${player0}
