@@ -1,7 +1,7 @@
 import { Ball } from './ball.js'
 import constants from './constants.js'
 import AnimationController from './lib/animations.js'
-import EventEmitter from './lib/events.js'
+import EventEmitter from '../lib/events.js'
 import { BasePacket, PublishButtonsPacket } from './lib/packets.js'
 import { PacketQueue, RingBuffer } from './lib/rollback.js'
 import Paddle from './paddle.js'

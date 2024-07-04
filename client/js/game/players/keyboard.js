@@ -1,31 +1,10 @@
 /** @typedef {import('../paddle.js').PaddleInput} PaddleInput */
 /** @typedef {import('./base.js').BaseControllerConfig} BaseControllerConfig */
-/** @typedef {import('./support/socd.js').SOCDCleanerType} SOCDCleanerType */
 
 import BaseController from './base.js'
-import { SOCDCleaner } from './support/socd.js'
-
-/**
- * A superclass for all locally-driven paddles. Handles things like input
- * cleaning.
- */
-export default class LocalPlayer extends BaseController {
-  rawButtons = 0
-
-  /** @type {SOCDCleaner} */
-  verticalCleaner
-
-  /**
-   *
-   * @param {BaseControllerConfig} config
-   */
-  constructor({ socdVertical } = {}) {
-    super({ socdVertical })
-  }
-}
 
 /** @typedef {Partial<BaseControllerConfig> & {
- *   keybinds: Record<string, PaddleInput>
+ *   keybinds: Record<PaddleInput, string>
  * }} KeyboardControllerConfig */
 
 /**
@@ -37,13 +16,17 @@ export class KeyboardController extends BaseController {
    */
   constructor({
     keybinds = {
-      ArrowUp: 'Up',
-      ArrowDown: 'Down',
+      Up: 'ArrowUp',
+      Down: 'ArrowDown',
     },
     socdVertical,
   } = {}) {
     super({ socdVertical })
-    this.keybinds = keybinds
+    // invert the keybinds object
+    this.keybinds = Object.entries(keybinds).reduce(
+      (acc, [input, keyCode]) => ((acc[keyCode] = input), acc),
+      {}
+    )
 
     this.keydownListener = this.keydownListener.bind(this)
     this.keyupListener = this.keyupListener.bind(this)

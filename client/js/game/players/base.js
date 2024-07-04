@@ -1,12 +1,11 @@
 /** @typedef {import('./support/socd.js').SOCDCleanerType} SOCDCleanerType */
 
-import { setBit } from '../../utils.js'
+import { setBit } from '../../lib/utils.js'
 import { PADDLE_MASKS } from '../paddle.js'
 import getSOCDCleaner from './support/socd.js'
 
 /** @typedef {{
  *   socdVertical: SOCDCleanerType,
- *   playerIdx: number
  * }} BaseControllerConfig */
 
 /** @typedef {import('../game').default} GameInstance */
@@ -37,25 +36,32 @@ export default class BaseController {
   }
 
   /**
+   * Helper function for controllers with "press" and "release" events.
    * @param {PaddleInput} input
    * @param {boolean} pressed
    */
   processInput(input, pressed) {
     const mask = PADDLE_MASKS[input]
-    this.rawButtons = setBit(this.rawButtons, mask, pressed)
 
-    let state = setBit(this.lastButtons, mask, pressed)
+    this.processRawButtons(setBit(this.rawButtons, mask, pressed))
+  }
+
+  /**
+   * Handle raw button data from the controller and process SOCD
+   * @param {number} buttons
+   */
+  processRawButtons(buttons) {
+    this.rawButtons = buttons
+    let state = buttons
 
     // Process SOCD for vertical input
-    if (input === 'Down' || input === 'Up') {
-      const positive = this.rawButtons & PADDLE_MASKS.Up
-      const negative = this.rawButtons & PADDLE_MASKS.Down
+    const positive = this.rawButtons & PADDLE_MASKS.Up
+    const negative = this.rawButtons & PADDLE_MASKS.Down
 
-      const cleaned = this.verticalCleaner.clean(positive, negative)
+    const cleaned = this.verticalCleaner.clean(positive, negative)
 
-      state = setBit(state, PADDLE_MASKS.Up, cleaned === 1)
-      state = setBit(state, PADDLE_MASKS.Down, cleaned === -1)
-    }
+    state = setBit(state, PADDLE_MASKS.Up, cleaned === 1)
+    state = setBit(state, PADDLE_MASKS.Down, cleaned === -1)
 
     if (state !== this.lastButtons) {
       this.lastButtons = state

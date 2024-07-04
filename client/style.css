@@ -42,6 +42,160 @@ h6 {
   transform: translate(-50%, -50%);
 }
 
+select,
+input[type='text'],
+input[type='number'] {
+  border: 0;
+  color: white;
+  font: inherit;
+  background: rgb(255 255 255 / 10%);
+  padding: 4px 8px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  width: 100%;
+  outline: none;
+}
+select:focus,
+input[type='text']:focus,
+input[type='number']:focus {
+  background: rgb(255 255 255 / 20%);
+}
+
+select > option {
+  color: black;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+input[type='range']:focus {
+  outline: none;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  background-color: rgb(255 255 255 / 20%);
+  border-radius: 0.5rem;
+  height: 0.5rem;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  margin-top: -4px; /* Centers thumb on the track */
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+input[type='range']::-moz-range-track {
+  background-color: #737373;
+  border-radius: 0.5rem;
+  height: 0.5rem;
+}
+
+input[type='range']::-moz-range-thumb {
+  background-color: #ffffff;
+  border: none; /*Removes extra border that FF applies*/
+  border-radius: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+input[type='range']:focus::-moz-range-thumb {
+  outline: 3px solid #ffffff;
+  outline-offset: 0.125rem;
+}
+
+label {
+  display: block;
+}
+
+label span {
+  display: block;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+.numarange {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 8px;
+}
+#scene-config section {
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 24px 0;
+}
+
+#scene-config header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#scene-config .game-mode {
+  width: auto;
+}
+
+#scene-config header h1 {
+  font-size: 2rem;
+}
+
+#scene-config details {
+  margin: 16px 0 0;
+}
+#scene-config details summary {
+  cursor: pointer;
+}
+
+#scene-config details h3 {
+  font-size: 1em;
+  margin-top: 8px;
+}
+
+.player-config-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 16px;
+}
+
+.keybind-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px 24px;
+  margin-top: 4px;
+}
+
+.player-config {
+  padding-top: 16px;
+  margin-top: 16px;
+  width: 320px;
+}
+
+.start-button {
+  width: 100%;
+  height: 32px;
+  background: white;
+  color: black;
+  font: inherit;
+  border-radius: 6px;
+  border: 0;
+  margin-top: 32px;
+
+  font-weight: bold;
+  cursor: pointer;
+}
+
 #scene-in-queue > section {
   display: flex;
   flex-direction: column;
@@ -116,7 +270,7 @@ h6 {
 #connection-status {
   background: rgb(255 255 255 / 20%);
   padding: 4px 12px;
-  border-radius: 9999px;
+  border-radius: 6px;
   font-size: 1rem;
 }
 
