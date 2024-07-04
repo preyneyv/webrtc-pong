@@ -1,5 +1,7 @@
 # WebRTC Pong
 
+https://github.com/user-attachments/assets/46ccd8b3-cf31-4719-b598-91e47425b115
+
 A multiplayer pong game using WebRTC. Used as a sandbox for learning about
 WebRTC and rollback netcode.
 
