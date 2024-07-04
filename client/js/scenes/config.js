@@ -217,8 +217,7 @@ function ConfigScreen({ onStart }) {
           : null,
     }
 
-    console.log(squishedCfg)
-
+    // TODO: validate config before starting
     onStart(squishedCfg)
   }
   return html`<section>

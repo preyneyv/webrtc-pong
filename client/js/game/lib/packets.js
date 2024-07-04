@@ -22,6 +22,7 @@ export class BytesBuffer {
    * @private
    * @param {'Uint' | 'Int'} prefix
    * @param {number} num
+   * @returns {() => number}
    */
   makeReadFn(prefix, num) {
     return () => {
@@ -39,6 +40,7 @@ export class BytesBuffer {
    * @private
    * @param {'Uint' | 'Int'} prefix
    * @param {number} num
+   * @returns {(value: number) => this}
    */
   makeWriteFn(prefix, num) {
     return (value) => {
